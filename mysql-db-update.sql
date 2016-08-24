@@ -5,7 +5,7 @@ SET sql_notes = 0; //
 SET sql_warnings = 0; //
 DROP PROCEDURE IF EXISTS DB_UPDATE; //
 CREATE TABLE IF NOT EXISTS DB_VERSION (
-	  version varchar(100) not null,
+    version varchar(100) not null,
     feature varchar(100) not null,
     description varchar(300) not null,
     date datetime not null,
@@ -17,41 +17,41 @@ SET sql_notes = 1;
 //
 CREATE PROCEDURE DB_UPDATE(pversion varchar(100), pfeature varchar(100), pdescription varchar(300), poperation int)
 BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
-	DML_ROLLBACK_ORIGINAL_STATE:
-		BEGIN
-			ROLLBACK;
-		END;
-	
+    DML_ROLLBACK_ORIGINAL_STATE:
+        BEGIN
+            ROLLBACK;
+        END;
+
     DDL_ROLLBACK_ORIGINAL_STATE:
-		BEGIN
+        BEGIN
         END;
         
-		SHOW ERRORS;
+        SHOW ERRORS;
     END;
     
 DDL_BLOCK:
-	BEGIN
+    BEGIN
     END;
     
 DML_TRANSACTIONAL_BLOCK:
-	BEGIN
-		START TRANSACTION;
+    BEGIN
+        START TRANSACTION;
 
         IF poperation = 1 THEN
-			INSERT INTO DB_VERSION (VERSION, FEATURE, DESCRIPTION, DATE)
-			VALUES (pversion, pfeature, pdescription, sysdate());
-		ELSEIF poperation = 2 THEN
-			DELETE FROM DB_VERSION WHERE VERSION = pversion AND FEATURE = pfeature;
+            INSERT INTO DB_VERSION (VERSION, FEATURE, DESCRIPTION, DATE)
+            VALUES (pversion, pfeature, pdescription, sysdate());
+        ELSEIF poperation = 2 THEN
+            DELETE FROM DB_VERSION WHERE VERSION = pversion AND FEATURE = pfeature;
             
             IF ROW_COUNT() <> 1 THEN
-				SIGNAL SQLSTATE '99999' SET MESSAGE_TEXT = 'failure on uninstalling script: could not found script version and feature';
+                SIGNAL SQLSTATE '99999' SET MESSAGE_TEXT = 'failure on uninstalling script: could not found script version and feature';
             END IF;
-		ELSE
-			SIGNAL SQLSTATE '99999' SET MESSAGE_TEXT = 'operation must be 1 (install) or 2 (uninstall)';
+        ELSE
+            SIGNAL SQLSTATE '99999' SET MESSAGE_TEXT = 'operation must be 1 (install) or 2 (uninstall)';
         END IF;
-			
+        
         COMMIT;
     END;
 END //
